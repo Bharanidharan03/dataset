@@ -37,8 +37,9 @@ function AppContent() {
   const [settings, setSettings] = useState({
     geminiKey: '',
     ollamaModel: 'llama3',
-    ollamaUrl: 'https://lillia-unstayable-jaunita.ngrok-free.dev'
+    ollamaUrl: 'http://localhost:11434'
   });
+
 
 
   // Fetch reports on login
