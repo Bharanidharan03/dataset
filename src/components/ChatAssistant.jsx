@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Mic, MicOff, Volume2, Sparkles, User, Bot, VolumeX } from 'lucide-react';
 import { generateGeminiResponse } from '../services/gemini';
+import { saveChatMessage, getChatHistory } from '../services/database';
+import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { useVoiceCommand } from '../context/VoiceCommandContext';
 import { useVoice } from '../context/VoiceContext';
@@ -8,9 +10,22 @@ import { useLanguage } from '../context/LanguageContext';
 
 const ChatAssistant = ({ context, analysis, settings }) => {
     const { t, getAILanguageInstruction } = useLanguage();
+    const { user } = useAuth();
+
     const [messages, setMessages] = useState([
         { role: 'model', content: t('chatAssistant') + ". " + (t('language') === 'भाषा' ? 'नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। आप मुझसे अपनी रिपोर्ट के बारे में सवाल पूछ सकते हैं।' : t('language') === 'மொழி' ? 'வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் அறிக்கையைப் பற்றி என்னிடம் கேள்விகளைக் கேட்கலாம்.' : "Hi! I'm your medical assistant. You can ask me questions about your report.") }
     ]);
+
+    // Load History
+    useEffect(() => {
+        if (user) {
+            getChatHistory(user.uid).then(hist => {
+                if (hist && hist.length > 0) {
+                    setMessages(hist);
+                }
+            });
+        }
+    }, [user]);
 
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -89,13 +104,15 @@ const ChatAssistant = ({ context, analysis, settings }) => {
 
         const userMsg = { role: 'user', content: questionToSend };
         setMessages(prev => [...prev, userMsg]);
+        if (user) saveChatMessage(user.uid, 'user', userMsg.content);
+
         setInput('');
         setLoading(true);
 
         try {
             // Create context prompt
             const fullPrompt = `
-        Context (Medical Report Content): "${context.substring(0, 1000)}..."
+        Context (Medical Report Content): "${context ? context.substring(0, 1000) : 'No report loaded.'}..."
         Previous Analysis: "${analysis ? analysis.substring(0, 500) : ''}..."
         
         User Question: ${questionToSend}
@@ -107,13 +124,15 @@ const ChatAssistant = ({ context, analysis, settings }) => {
             // Pass language instruction for multilingual response
             const responseText = await generateGeminiResponse(
                 settings.geminiKey,
-                [], // Empty history
+                messages, // Pass full conversation history
                 fullPrompt,
-                context,
+                context || "",
                 getAILanguageInstruction()
             );
 
             setMessages(prev => [...prev, { role: 'model', content: responseText }]);
+            if (user) saveChatMessage(user.uid, 'model', responseText);
+
             speak('I have an answer for you', true);
         } catch (err) {
             const errorMsg = "Error: " + err.message;

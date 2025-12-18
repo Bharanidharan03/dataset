@@ -4,13 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 
 // Placeholder config - User needs to provide actual keys
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+    apiKey: "AIzaSyCDYamrxiAw_fTVp2CHXOlvRy3qm2CKHYA",
+    authDomain: "dataset-7ba96.firebaseapp.com",
+    projectId: "dataset-7ba96",
+    storageBucket: "dataset-7ba96.firebasestorage.app",
+    messagingSenderId: "530660234150",
+    appId: "1:530660234150:web:23496d147958c3e51c3567",
+    measurementId: "G-H20BEV5GF8"
 };
 
 

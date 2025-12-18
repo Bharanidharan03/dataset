@@ -10,9 +10,11 @@ export const extractTextFromImage = async (imageFile, onProgress) => {
             }
         });
 
-        const { data: { text } } = await worker.recognize(imageFile);
+        const result = await worker.recognize(imageFile);
+        const { text, confidence } = result.data;
+
         await worker.terminate();
-        return text;
+        return { text, confidence };
     } catch (error) {
         console.error("OCR Error:", error);
         throw new Error("Failed to extract text from image.");

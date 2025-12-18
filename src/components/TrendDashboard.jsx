@@ -23,12 +23,18 @@ const TrendDashboard = ({ reports }) => {
         );
     }
 
+    // Helper to extract value safely (handles old number format vs new object format)
+    const getValue = (val) => {
+        if (val && typeof val === 'object' && val.value !== undefined) return val.value;
+        return typeof val === 'number' ? val : 0;
+    };
+
     const chartData = [...reports].reverse().map(r => ({
         date: new Date(r.date || r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        hba1c: r.metrics?.blood?.hba1c || 0,
-        cholesterol: r.metrics?.cholesterol?.total || 0,
-        sys: r.metrics?.heart?.bp_sys || 0,
-        dia: r.metrics?.heart?.bp_dia || 0,
+        hba1c: getValue(r.metrics?.blood?.hba1c),
+        cholesterol: getValue(r.metrics?.cholesterol?.total),
+        sys: getValue(r.metrics?.heart?.bp_sys),
+        dia: getValue(r.metrics?.heart?.bp_dia),
     })).filter(d => d.hba1c > 0 || d.cholesterol > 0);
 
     return (

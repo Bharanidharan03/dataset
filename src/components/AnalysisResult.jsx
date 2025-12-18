@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { generateOllamaResponse } from '../services/ollama';
+import { generateGeminiResponse } from '../services/gemini';
 import { RefreshCw, AlertTriangle, FileText, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useVoice } from '../context/VoiceContext';
 import { useLanguage } from '../context/LanguageContext';
 import HealthDashboard from './HealthDashboard';
 
-const AnalysisResult = ({ text, analysis, setAnalysis, settings, structuredData }) => {
+const AnalysisResult = ({ text, analysis, setAnalysis, settings, structuredData, reports }) => {
     const { t, getAILanguageInstruction } = useLanguage();
 
     const [loading, setLoading] = useState(false);
@@ -16,26 +17,53 @@ const AnalysisResult = ({ text, analysis, setAnalysis, settings, structuredData 
 
 
     const analyze = async () => {
-        if (!text || !settings.ollamaModel) return;
+        if (!text) return;
+        if (!settings.ollamaModel && !settings.geminiKey) {
+            setError("No AI Provider configured. Please add Gemini API Key or enable Ollama.");
+            return;
+        }
 
         setLoading(true);
         setError(null);
         try {
+            // Prepare History Context
+            const recentHistory = reports?.slice(0, 5).map(r => ({
+                date: r.date,
+                hba1c: r.metrics?.blood?.hba1c,
+                cholesterol: r.metrics?.cholesterol?.total,
+                bp_sys: r.metrics?.heart?.bp_sys
+            })) || [];
+
+            const historyContext = recentHistory.length > 0
+                ? `PREVIOUS HISTORY (Compare current values to these): ${JSON.stringify(recentHistory)}`
+                : "No previous history available.";
+
             // Prompt Engineering for Medical Report
             const prompt = `
         You are a helpful medical assistant. 
-        Analyze the following medical report text and explain it in simple, easy-to-understand language for a patient.
-        Break it down into:
-        1. **Summary**: What is this report about?
-        2. **Key Findings**: Important values or observations.
-        3. Simplified Explanation: Explain any medical jargon.
-        4. Recommendations: General healthy lifestyle tips relevant to these findings (add a disclaimer).
-
+        Analyze the following medical report text and explain it in simple, easy-to-understand language.
+        
+        CONTEXT:
+        ${historyContext}
+        
+        INSTRUCTIONS:
+        1. **Summary**: Brief health status.
+        2. **Key Findings**: Important values.
+        3. **Trend Analysis**: Explicitly mention if values are stable, improving, or worsening compared to history.
+        4. **Recommendations**: Lifestyle tips.
+        
         Report Text:
         "${text}"
       `;
 
-            const result = await generateOllamaResponse(prompt, settings.ollamaModel, settings.ollamaUrl, getAILanguageInstruction());
+            let result = "";
+            if (settings.geminiKey) {
+                // Use empty history [] for now as this is a one-off analysis
+                result = await generateGeminiResponse(settings.geminiKey, [], prompt, text, getAILanguageInstruction());
+            } else {
+                result = await generateOllamaResponse(prompt, settings.ollamaModel, settings.ollamaUrl, getAILanguageInstruction());
+            }
+
             setAnalysis(result);
 
         } catch (err) {

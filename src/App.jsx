@@ -134,6 +134,7 @@ function AppContent() {
                   setAnalysis={setAnalysis}
                   settings={settings}
                   structuredData={latestStructuredData}
+                  reports={reports || []}
                 />
               )}
               <TrendDashboard reports={reports} />

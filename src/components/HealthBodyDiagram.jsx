@@ -23,16 +23,23 @@ const BodyPart = ({ id, path, label, onClick, color, isCore = true }) => (
 const HealthBodyDiagram = ({ metrics }) => {
     const [selectedPart, setSelectedPart] = useState(null);
 
+    const getVal = (val) => {
+        if (val && typeof val === 'object' && val.value !== undefined) return val.value;
+        return (typeof val === 'number') ? val : 0;
+    };
+
     const getStatusColor = (value, min, max, baseAlpha = 0.4) => {
-        if (!value || isNaN(value) || value === 0) return `rgba(148, 163, 184, ${baseAlpha * 0.5})`;
-        if (value < min || value > max) return `rgba(239, 68, 68, ${baseAlpha})`; // Critical
+        const val = getVal(value);
+        if (!val || isNaN(val) || val === 0) return `rgba(148, 163, 184, ${baseAlpha * 0.5})`;
+        if (val < min || val > max) return `rgba(239, 68, 68, ${baseAlpha})`; // Critical
         return `rgba(34, 197, 94, ${baseAlpha})`; // Good
     };
 
     const calculateHealthScore = (value, min, max) => {
-        if (!value || isNaN(value) || value === 0) return null;
+        const val = getVal(value);
+        if (!val || isNaN(val) || val === 0) return null;
         const range = max - min;
-        const dist = Math.abs(value - (min + max) / 2);
+        const dist = Math.abs(val - (min + max) / 2);
         const score = Math.max(0, 100 - (dist / (range / 2)) * 50);
         return Math.round(score);
     };
@@ -43,10 +50,10 @@ const HealthBodyDiagram = ({ metrics }) => {
             label: 'Brain / Nervous System',
             icon: Brain,
             color: "rgba(96, 165, 250, 0.3)",
-            score: null, // Hard to score from basic blood labs
+            score: null,
             data: [
-                { label: 'Vitamin B12', value: metrics?.blood?.vitamin_b12, unit: 'pg/mL', range: [200, 900] },
-                { label: 'Nerve Status', value: metrics?.blood?.vitamin_b12 > 200 ? 'Optimal' : 'Low B12', unit: '' }
+                { label: 'Vitamin B12', value: getVal(metrics?.blood?.vitamin_b12), unit: 'pg/mL', range: [200, 900] },
+                { label: 'Nerve Status', value: getVal(metrics?.blood?.vitamin_b12) > 200 ? 'Optimal' : 'Low B12', unit: '' }
             ]
         },
         {
@@ -56,9 +63,9 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.heart?.bpm, 60, 100),
             score: calculateHealthScore(metrics?.heart?.bpm, 60, 100),
             data: [
-                { label: 'Pulse', value: metrics?.heart?.bpm, unit: 'bpm', range: [60, 100] },
-                { label: 'Systolic BP', value: metrics?.heart?.bp_sys, unit: 'mmHg', range: [90, 120] },
-                { label: 'Diastolic BP', value: metrics?.heart?.bp_dia, unit: 'mmHg', range: [60, 80] }
+                { label: 'Pulse', value: getVal(metrics?.heart?.bpm), unit: 'bpm', range: [60, 100] },
+                { label: 'Systolic BP', value: getVal(metrics?.heart?.bp_sys), unit: 'mmHg', range: [90, 120] },
+                { label: 'Diastolic BP', value: getVal(metrics?.heart?.bp_dia), unit: 'mmHg', range: [60, 80] }
             ]
         },
         {
@@ -68,8 +75,8 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.liver?.sgpt, 7, 56),
             score: calculateHealthScore(metrics?.liver?.sgpt, 7, 56),
             data: [
-                { label: 'SGPT (ALT)', value: metrics?.liver?.sgpt, unit: 'U/L', range: [7, 56] },
-                { label: 'SGOT (AST)', value: metrics?.liver?.sgot, unit: 'U/L', range: [8, 48] }
+                { label: 'SGPT (ALT)', value: getVal(metrics?.liver?.sgpt), unit: 'U/L', range: [7, 56] },
+                { label: 'SGOT (AST)', value: getVal(metrics?.liver?.sgot), unit: 'U/L', range: [8, 48] }
             ]
         },
         {
@@ -79,8 +86,8 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.kidney?.creatinine, 0.7, 1.3),
             score: calculateHealthScore(metrics?.kidney?.creatinine, 0.7, 1.3),
             data: [
-                { label: 'Creatinine', value: metrics?.kidney?.creatinine, unit: 'mg/dL', range: [0.7, 1.3] },
-                { label: 'Urea', value: metrics?.kidney?.urea, unit: 'mg/dL', range: [7, 20] }
+                { label: 'Creatinine', value: getVal(metrics?.kidney?.creatinine), unit: 'mg/dL', range: [0.7, 1.3] },
+                { label: 'Urea', value: getVal(metrics?.kidney?.urea), unit: 'mg/dL', range: [7, 20] }
             ]
         },
         {
@@ -90,8 +97,8 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.blood?.hba1c, 4, 6.5),
             score: calculateHealthScore(metrics?.blood?.hba1c, 4, 6.5),
             data: [
-                { label: 'HbA1c', value: metrics?.blood?.hba1c, unit: '%', range: [4, 5.7] },
-                { label: 'Fasting Glucose', value: metrics?.blood?.glucose_f, unit: 'mg/dL', range: [70, 100] }
+                { label: 'HbA1c', value: getVal(metrics?.blood?.hba1c), unit: '%', range: [4, 5.7] },
+                { label: 'Fasting Glucose', value: getVal(metrics?.blood?.glucose_f), unit: 'mg/dL', range: [70, 100] }
             ]
         },
         {
@@ -101,8 +108,8 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.limbs?.calcium, 8.5, 10.5),
             score: calculateHealthScore(metrics?.limbs?.calcium, 8.5, 10.5),
             data: [
-                { label: 'Calcium', value: metrics?.limbs?.calcium, unit: 'mg/dL', range: [8.5, 10.5] },
-                { label: 'Uric Acid', value: metrics?.limbs?.uric_acid, unit: 'mg/dL', range: [3.5, 7.2] }
+                { label: 'Calcium', value: getVal(metrics?.limbs?.calcium), unit: 'mg/dL', range: [8.5, 10.5] },
+                { label: 'Uric Acid', value: getVal(metrics?.limbs?.uric_acid), unit: 'mg/dL', range: [3.5, 7.2] }
             ]
         },
         {
@@ -112,9 +119,9 @@ const HealthBodyDiagram = ({ metrics }) => {
             color: getStatusColor(metrics?.blood?.hemoglobin, 13.5, 17.5, 0.2),
             score: calculateHealthScore(metrics?.blood?.hemoglobin, 13.5, 17.5),
             data: [
-                { label: 'Hemoglobin', value: metrics?.blood?.hemoglobin, unit: 'g/dL', range: [13.5, 17.5] },
-                { label: 'WBC Count', value: metrics?.blood?.wbc, unit: 'K/uL', range: [4.5, 11] },
-                { label: 'Platelets', value: metrics?.blood?.platelets, unit: 'K/uL', range: [150, 450] }
+                { label: 'Hemoglobin', value: getVal(metrics?.blood?.hemoglobin), unit: 'g/dL', range: [13.5, 17.5] },
+                { label: 'WBC Count', value: getVal(metrics?.blood?.wbc), unit: 'K/uL', range: [4.5, 11] },
+                { label: 'Platelets', value: getVal(metrics?.blood?.platelets), unit: 'K/uL', range: [150, 450] }
             ]
         }
     ];

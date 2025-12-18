@@ -1,0 +1,173 @@
+# 🧪 Medical Report Analyzer - Feature Testing Guide
+
+## 📋 Features Implemented (9 Total)
+
+### ✅ Feature 1: Evidence-Anchored Explanations
+**What it does:** All medical interpretations reference WHO/ADA/ICMR guidelines.
+
+**Files Changed:**
+- [src/services/medicalConfig.js](file:///d:/Projects/Hackathon/dataset/src/services/medicalConfig.js) - Added `GUIDELINES` constants
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - Injected guidelines into AI prompt
+
+**How to Test:**
+1. Upload a medical report with blood glucose values
+2. Check the AI analysis output
+3. Look for phrases like "According to ADA guidelines..." or references to clinical standards
+4. **Expected:** AI should cite specific guidelines when explaining values
+
+---
+
+### ✅ Feature 2: Extraction Confidence System
+**What it does:** Shows confidence level (High/Medium/Low) for each extracted value.
+
+**Files Changed:**
+- [src/services/ocr.js](file:///d:/Projects/Hackathon/dataset/src/services/ocr.js) - Returns confidence score from Tesseract
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - AI assigns confidence to each metric
+- [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) - Displays confidence badges
+
+**How to Test:**
+1. Upload a medical report
+2. Look at the Health Snapshot cards
+3. Check top-right corner of each metric card
+4. **Expected:** Green badge "High Conf.", Yellow "Medium Conf.", or Red "Low Conf."
+
+---
+
+### ✅ Feature 3: Report Quality Assessment
+**What it does:** OCR returns scan quality metrics.
+
+**Files Changed:**
+- [src/services/ocr.js](file:///d:/Projects/Hackathon/dataset/src/services/ocr.js) - Returns `{ text, confidence }` object
+- [src/services/medicalConfig.js](file:///d:/Projects/Hackathon/dataset/src/services/medicalConfig.js) - Defined quality thresholds
+
+**How to Test:**
+1. Upload a blurry or low-quality scan
+2. Check console logs for OCR confidence score
+3. **Expected:** Lower confidence scores for poor quality scans (feature foundation ready, UI warning can be added)
+
+---
+
+### ✅ Feature 4: Body-System Correlation Engine
+**What it does:** Detects relationships between values (e.g., HbA1c + Triglycerides = Metabolic risk).
+
+**Files Changed:**
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - Added `body_system_correlations` to JSON schema
+- [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) - Displays "Body System Links" section
+
+**How to Test:**
+1. Upload a report with multiple abnormal values (e.g., high glucose + high cholesterol)
+2. Scroll down in the analysis section
+3. Look for "Body System Links" card
+4. **Expected:** Shows correlations like "METABOLIC + GLUCOSE → Elevated HbA1c matches high Triglycerides..."
+
+---
+
+### ✅ Feature 5: Personal Baseline Normalization
+**What it does:** Compares current report to your last 5 reports.
+
+**Files Changed:**
+- [src/App.jsx](file:///d:/Projects/Hackathon/dataset/src/App.jsx) - Passes `reports` array to AnalysisResult
+- [src/components/AnalysisResult.jsx](file:///d:/Projects/Hackathon/dataset/src/components/AnalysisResult.jsx) - Injects history into AI prompt
+
+**How to Test:**
+1. **Login required** (Firebase auth)
+2. Upload 2+ reports over time
+3. Read the AI analysis text
+4. **Expected:** Phrases like "Stable compared to last month" or "Improved since previous report"
+
+---
+
+### ✅ Feature 6: Persistent Context Memory
+**What it does:** Chat assistant remembers previous conversations.
+
+**Files Changed:**
+- [src/services/database.js](file:///d:/Projects/Hackathon/dataset/src/services/database.js) - Added [saveChatMessage()](file:///d:/Projects/Hackathon/dataset/src/services/database.js#47-58) and [getChatHistory()](file:///d:/Projects/Hackathon/dataset/src/services/database.js#59-76)
+- [src/components/ChatAssistant.jsx](file:///d:/Projects/Hackathon/dataset/src/components/ChatAssistant.jsx) - Loads/saves chat to Firestore
+
+**How to Test:**
+1. **Login required**
+2. Ask the chat assistant a question (e.g., "What is my cholesterol?")
+3. Close the browser
+4. Reopen and login again
+5. **Expected:** Previous chat messages are restored
+
+---
+
+### ✅ Feature 7: Explain-Why Transparency Layer
+**What it does:** Every metric shows WHY it's flagged as normal/abnormal.
+
+**Files Changed:**
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - AI returns `explanation` field per metric
+- [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) - Displays explanation text below status
+
+**How to Test:**
+1. Upload a report
+2. Look at Health Snapshot metric cards
+3. Read the small text below the status (e.g., "Normal")
+4. **Expected:** Explanation like "HbA1c level indicates long-term blood sugar control"
+
+---
+
+### ✅ Feature 8: Advice Guardrail System
+**What it does:** AI never provides medical advice, only explains guidelines.
+
+**Files Changed:**
+- [src/services/medicalConfig.js](file:///d:/Projects/Hackathon/dataset/src/services/medicalConfig.js) - Added `ADVICE_BLOCKER_PROMPT`
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - Injected blocker into system prompt
+
+**How to Test:**
+1. Try asking the chat: "What medicine should I take?"
+2. **Expected:** AI responds with "I cannot provide medical advice. Clinical guidelines suggest discussing these values with a doctor."
+
+---
+
+### ✅ Feature 9: Daily-Life Impact Translation
+**What it does:** Translates abnormal values into daily life impacts (e.g., fatigue, focus).
+
+**Files Changed:**
+- [src/services/medicalConfig.js](file:///d:/Projects/Hackathon/dataset/src/services/medicalConfig.js) - Added `IMPACT_PROMPTS`
+- [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) - Added `daily_life_impact` to JSON schema
+- [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) - Displays "Daily Life Impact" section
+
+**How to Test:**
+1. Upload a report with abnormal values (e.g., low hemoglobin)
+2. Scroll down in analysis section
+3. Look for "Daily Life Impact" card
+4. **Expected:** Shows impacts like "Energy → Low Hemoglobin may explain recent fatigue"
+
+---
+
+## 🚀 Quick Test Checklist
+
+- [ ] **Feature 1**: Check AI mentions "ADA guidelines" or similar
+- [ ] **Feature 2**: See confidence badges on metric cards
+- [ ] **Feature 3**: OCR returns confidence in console
+- [ ] **Feature 4**: "Body System Links" card appears with correlations
+- [ ] **Feature 5**: AI mentions "compared to last report" (requires 2+ uploads)
+- [ ] **Feature 6**: Chat history persists after browser restart (requires login)
+- [ ] **Feature 7**: Metric cards show explanation text
+- [ ] **Feature 8**: AI refuses to give medical advice
+- [ ] **Feature 9**: "Daily Life Impact" card shows practical insights
+
+---
+
+## 🔧 Prerequisites for Full Testing
+
+1. **Firebase Setup**: User must be logged in for Features 5 & 6
+2. **Gemini API Key**: Required in Settings for AI analysis
+3. **Sample Medical Report**: Use a PDF/image with blood test results
+4. **Multiple Reports**: Upload 2+ reports to test baseline comparison
+
+---
+
+## 📁 Key Files Modified
+
+| Feature | Files Changed |
+|---------|---------------|
+| All | [src/services/medicalConfig.js](file:///d:/Projects/Hackathon/dataset/src/services/medicalConfig.js) (central config) |
+| All | [src/services/gemini.js](file:///d:/Projects/Hackathon/dataset/src/services/gemini.js) (AI prompt engineering) |
+| Confidence | [src/services/ocr.js](file:///d:/Projects/Hackathon/dataset/src/services/ocr.js), [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) |
+| Correlations & Impacts | [src/components/HealthDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthDashboard.jsx) |
+| Baseline | [src/App.jsx](file:///d:/Projects/Hackathon/dataset/src/App.jsx), [src/components/AnalysisResult.jsx](file:///d:/Projects/Hackathon/dataset/src/components/AnalysisResult.jsx) |
+| Chat Memory | [src/services/database.js](file:///d:/Projects/Hackathon/dataset/src/services/database.js), [src/components/ChatAssistant.jsx](file:///d:/Projects/Hackathon/dataset/src/components/ChatAssistant.jsx) |
+| Compatibility | [src/components/TrendDashboard.jsx](file:///d:/Projects/Hackathon/dataset/src/components/TrendDashboard.jsx), [src/components/HealthBodyDiagram.jsx](file:///d:/Projects/Hackathon/dataset/src/components/HealthBodyDiagram.jsx) |
